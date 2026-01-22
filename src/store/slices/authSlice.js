@@ -6,6 +6,7 @@ const initialState = {
     token: null,
     isAuthenticated: false,
     role: null,
+    isRestoring: true,
 };
 
 const authSlice = createSlice({
@@ -18,6 +19,7 @@ const authSlice = createSlice({
             state.token = token;
             state.isAuthenticated = true;
             state.role = user.role;
+            state.isRestoring = false;
         },
         logout: (state) => {
             state.user = null;
@@ -28,10 +30,13 @@ const authSlice = createSlice({
         updateUser: (state, action) => {
             state.user = { ...state.user, ...action.payload };
         },
+        finishRestoring: (state) => {
+            state.isRestoring = false;
+        },
     },
 });
 
-export const { loginSuccess, logout, updateUser } = authSlice.actions;
+export const { loginSuccess, logout, updateUser, finishRestoring } = authSlice.actions;
 
 // Thunk for login
 export const login = (credentials) => (dispatch) => {
@@ -81,7 +86,10 @@ export const restoreSession = () => (dispatch) => {
             // If parsing fails, clear localStorage
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user');
+            dispatch(finishRestoring());
         }
+    } else {
+        dispatch(finishRestoring());
     }
 };
 

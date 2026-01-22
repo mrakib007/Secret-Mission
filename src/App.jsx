@@ -15,6 +15,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 
 // Pages
 import Dashboard from './pages/Dashboard';
+import NotFound from './pages/NotFound';
 
 // Organization (lazy load for code splitting)
 import { lazy, Suspense } from 'react';
@@ -30,6 +31,7 @@ const SprintList = lazy(() => import('./pages/sprints/SprintList'));
 const SprintDashboard = lazy(() => import('./pages/sprints/SprintDashboard'));
 const CalendarView = lazy(() => import('./pages/views/CalendarView'));
 const GanttView = lazy(() => import('./pages/views/GanttView'));
+const ComponentLibrary = lazy(() => import('./pages/dev/ComponentLibrary'));
 
 // Loading component
 const PageLoader = () => (
@@ -178,10 +180,18 @@ function App() {
                   </Suspense>
                 }
               />
+              <Route
+                path="dev/components"
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ComponentLibrary />
+                  </Suspense>
+                }
+              />
             </Route>
 
             {/* 404 Route */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
 
           {/* Toast Notifications */}
