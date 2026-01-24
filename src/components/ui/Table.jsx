@@ -16,6 +16,10 @@ const Table = ({
     isLoading = false,
     pagination = true,
     pageSize = 10,
+    pageCount,
+    onPageChange,
+    currentPage,
+    manualPagination = false,
     className
 }) => {
     const tableData = useMemo(() => data || [], [data]);
@@ -25,12 +29,23 @@ const Table = ({
         data: tableData,
         columns: tableColumns,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
+        getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        initialState: {
-            pagination: {
+        manualPagination: manualPagination,
+        pageCount: pageCount,
+        onPaginationChange: (updater) => {
+            if (manualPagination && onPageChange) {
+                const newState = typeof updater === 'function'
+                    ? updater({ pageIndex: currentPage, pageSize: pageSize })
+                    : updater;
+                onPageChange(newState.pageIndex);
+            }
+        },
+        state: {
+            pagination: manualPagination ? {
+                pageIndex: currentPage,
                 pageSize: pageSize,
-            },
+            } : undefined,
         },
     });
 
@@ -93,44 +108,72 @@ const Table = ({
                 </table>
             </div>
 
-            {pagination && tableData.length > 0 && (
+            {pagination && (manualPagination ? pageCount > 1 : tableData.length > 0) && (
                 <div className="flex items-center justify-between px-2">
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-700">
-                            Page <span className="font-semibold">{table.getState().pagination.pageIndex + 1}</span> of{' '}
-                            <span className="font-semibold">{table.getPageCount()}</span>
+                            Page <span className="font-semibold">{manualPagination ? currentPage + 1 : table.getState().pagination.pageIndex + 1}</span> of{' '}
+                            <span className="font-semibold">{manualPagination ? pageCount : table.getPageCount()}</span>
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => table.setPageIndex(0)}
-                            disabled={!table.getCanPreviousPage()}
+                            onClick={() => manualPagination ? onPageChange(0) : table.setPageIndex(0)}
+                            disabled={manualPagination ? currentPage === 0 : !table.getCanPreviousPage()}
                         >
                             <ChevronsLeft className="h-4 w-4" />
                         </Button>
                         <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
+                            onClick={() => manualPagination ? onPageChange(currentPage - 1) : table.previousPage()}
+                            disabled={manualPagination ? currentPage === 0 : !table.getCanPreviousPage()}
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
+
+                        <div className="hidden sm:flex items-center gap-1">
+                            {Array.from({ length: manualPagination ? pageCount : table.getPageCount() }, (_, i) => {
+                                const isCurrent = manualPagination ? currentPage === i : table.getState().pagination.pageIndex === i;
+                                const totalPages = manualPagination ? pageCount : table.getPageCount();
+
+                                if (totalPages > 7) {
+                                    const activePage = manualPagination ? currentPage : table.getState().pagination.pageIndex;
+                                    if (i !== 0 && i !== totalPages - 1 && Math.abs(i - activePage) > 1) {
+                                        if (i === 1 || i === totalPages - 2) return <span key={i} className="px-1 text-gray-400">...</span>;
+                                        return null;
+                                    }
+                                }
+
+                                return (
+                                    <Button
+                                        key={i}
+                                        variant={isCurrent ? 'primary' : 'outline'}
+                                        size="sm"
+                                        className={cn("w-8 h-8 p-0", isCurrent && "bg-primary-500 text-white border-primary-500")}
+                                        onClick={() => manualPagination ? onPageChange(i) : table.setPageIndex(i)}
+                                    >
+                                        {i + 1}
+                                    </Button>
+                                );
+                            })}
+                        </div>
+
                         <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
+                            onClick={() => manualPagination ? onPageChange(currentPage + 1) : table.nextPage()}
+                            disabled={manualPagination ? currentPage === pageCount - 1 : !table.getCanNextPage()}
                         >
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                         <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                            disabled={!table.getCanNextPage()}
+                            onClick={() => manualPagination ? onPageChange(pageCount - 1) : table.setPageIndex(table.getPageCount() - 1)}
+                            disabled={manualPagination ? currentPage === pageCount - 1 : !table.getCanNextPage()}
                         >
                             <ChevronsRight className="h-4 w-4" />
                         </Button>

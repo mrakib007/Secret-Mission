@@ -18,13 +18,18 @@ const UserList = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
+    const [page, setPage] = useState(0);
 
     // Fetch users (using the endpoint you specified)
-    const { data: response, isLoading, refetch } = useGetApiQuery({ url: '/admin/get-user-list' });
+    const { data: response, isLoading, refetch } = useGetApiQuery({
+        url: '/admin/get-user-list',
+        params: { page: page + 1 } // Laravel pages are 1-based
+    });
     const [deleteUser, { isLoading: isDeleting }] = useDeleteApiMutation();
 
     // The users array is nested in response.data.data according to your provided structure
     const users = response?.data?.data || [];
+    const paginationData = response?.data || {};
 
     const handleEdit = (user) => {
         setSelectedUser(user);
@@ -155,11 +160,16 @@ const UserList = () => {
             </div>
 
             <Card>
-                <CardBody className="p-0">
+                <CardBody className="p-3">
                     <Table
                         columns={columns}
                         data={users}
                         isLoading={isLoading}
+                        manualPagination={true}
+                        pageCount={paginationData.last_page || 0}
+                        currentPage={page}
+                        onPageChange={setPage}
+                        pageSize={paginationData.per_page || 10}
                     />
                 </CardBody>
             </Card>
