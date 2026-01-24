@@ -92,7 +92,7 @@ const Login = () => {
                                     name="email"
                                     type="email"
                                     placeholder="your@email.com"
-                                    className="!bg-white/5 !border-white/10 !text-white placeholder:text-slate-500"
+                                    className=" placeholder:text-slate-500"
                                 />
 
                                 <Input
@@ -100,7 +100,7 @@ const Login = () => {
                                     name="password"
                                     type="password"
                                     placeholder="••••••••"
-                                    className="!bg-white/5 !border-white/10 !text-white placeholder:text-slate-500"
+                                    className=" placeholder:text-slate-500"
                                 />
 
                                 <Button
