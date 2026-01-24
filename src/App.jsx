@@ -32,6 +32,7 @@ const SprintDashboard = lazy(() => import('./pages/sprints/SprintDashboard'));
 const CalendarView = lazy(() => import('./pages/views/CalendarView'));
 const GanttView = lazy(() => import('./pages/views/GanttView'));
 const ComponentLibrary = lazy(() => import('./pages/dev/ComponentLibrary'));
+const UserList = lazy(() => import('./pages/users/UserList'));
 
 // Loading component
 const PageLoader = () => (
@@ -76,6 +77,16 @@ function App() {
             >
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
+              <Route
+                path="users"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <Suspense fallback={<PageLoader />}>
+                      <UserList />
+                    </Suspense>
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Organization Routes (Admin Only) */}
               <Route
