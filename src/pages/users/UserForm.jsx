@@ -53,6 +53,7 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
         designation_id: user?.designation_id || '',
         wing: user?.wing || 'SFT',
         address: user?.address || '',
+        user_type: user?.user_type || 'Developer',
         is_active: user?.is_active ?? true,
         profile_picture: null,
         password: '',
@@ -78,7 +79,7 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
 
             if (isEditing) {
                 await updateUser({
-                    end_point: `/users/${user.id}`,
+                    end_point: `/update-user/${user.id}`,
                     body: body
                 }).unwrap();
                 toast.success('User updated successfully');
@@ -106,7 +107,7 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
             title={isEditing ? 'Edit User Profile' : 'Register New User'}
             size="xl"
             className="overflow-hidden"
-            contentClassName="p-0 overflow-hidden"
+            contentClassName="pb-2 px-2 overflow-hidden"
         >
             <Formik
                 initialValues={initialValues}
@@ -212,7 +213,7 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
                         </div>
 
                         {/* Sticky Footer */}
-                        <div className="flex justify-end gap-3 p-6 bg-slate-50 border-t border-slate-200 rounded-b-xl -mx-6 -mb-6 mt-4">
+                        <div className="flex justify-end gap-3 p-6 bg-slate-50 border-t border-slate-200 rounded-b-xl -mx-6 -mb-6 mt-4 ">
                             <Button variant="ghost" onClick={onClose} type="button">Discard Changes</Button>
                             <Button type="submit" isLoading={isSubmitting || isCreating || isUpdating} className="px-8">
                                 {isEditing ? 'Save Profile' : 'Register User'}
