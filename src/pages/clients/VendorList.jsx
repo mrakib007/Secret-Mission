@@ -28,7 +28,7 @@ const ClientList = () => {
 
     // Data handling based on common structure
     const clients = response?.data?.data || [];
-    const paginationData = response?.data?.meta || response || {};
+    const paginationData = response?.data || {};
 
     const handleEdit = (client) => {
         setSelectedClient(client);
@@ -152,7 +152,7 @@ const ClientList = () => {
             </div>
 
             <Card>
-                <CardBody className="p-0">
+                <CardBody className="p-3">
                     <Table
                         columns={columns}
                         data={clients}
