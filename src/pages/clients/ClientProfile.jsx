@@ -165,7 +165,7 @@ const ClientProfile = ({ isOpen, onClose, client }) => {
 
                 {/* Sticky Footer */}
                 <div className="flex justify-end gap-3 p-6 bg-slate-50 border-t border-slate-200 rounded-b-xl -mx-6 -mb-6 mt-4">
-                    <Button class="btn btn-primary" onClick={onClose}>
+                    <Button className="btn btn-primary" onClick={onClose}>
                         Close Profile
                     </Button>
                 </div>
