@@ -33,7 +33,7 @@ const CalendarView = lazy(() => import('./pages/views/CalendarView'));
 const GanttView = lazy(() => import('./pages/views/GanttView'));
 const ComponentLibrary = lazy(() => import('./pages/dev/ComponentLibrary'));
 const UserList = lazy(() => import('./pages/users/UserList'));
-const VendorList = lazy(() => import('./pages/clients/VendorList'));
+const ClientList = lazy(() => import('./pages/clients/VendorList'));
 
 // Loading component
 const PageLoader = () => (
@@ -93,7 +93,7 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <Suspense fallback={<PageLoader />}>
-                      <VendorList />
+                      <ClientList />
                     </Suspense>
                   </ProtectedRoute>
                 }
