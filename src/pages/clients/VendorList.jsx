@@ -6,17 +6,20 @@ import {
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { Plus, Edit, Trash2, Users, Building2, Mail, Phone, Globe } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Building2, Mail, Phone, Globe, Eye } from 'lucide-react';
 import { toast } from 'react-toastify';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
-import VendorForm from './VendorForm';
+import ClientForm from './VendorForm';
+import ClientProfile from './ClientProfile';
 import { Card, CardBody } from '../../components/ui/Card';
 
-const VendorList = () => {
+const ClientList = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [selectedVendor, setSelectedVendor] = useState(null);
+    const [selectedClient, setSelectedClient] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [vendorToDelete, setVendorToDelete] = useState(null);
+    const [clientToDelete, setClientToDelete] = useState(null);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [clientToView, setClientToView] = useState(null);
     const [page, setPage] = useState(0);
 
     // Fetch vendors
@@ -27,34 +30,39 @@ const VendorList = () => {
     const [deleteVendor, { isLoading: isDeleting }] = useDeleteApiMutation();
 
     // Data handling based on common structure
-    const vendors = response?.data?.data || [];
-    const paginationData = response?.data?.meta || response || {};
+    const clients = response?.data?.data || [];
+    const paginationData = response?.data || {};
 
-    const handleEdit = (vendor) => {
-        setSelectedVendor(vendor);
+    const handleEdit = (client) => {
+        setSelectedClient(client);
         setIsFormOpen(true);
     };
 
-    const handleDeleteClick = (vendor) => {
-        setVendorToDelete(vendor);
+    const handleView = (client) => {
+        setClientToView(client);
+        setIsProfileModalOpen(true);
+    };
+
+    const handleDeleteClick = (client) => {
+        setClientToDelete(client);
         setIsDeleteModalOpen(true);
     };
 
     const confirmDelete = async () => {
         try {
-            await deleteVendor({ end_point: `/vendors/${vendorToDelete.id}` }).unwrap();
-            toast.success('Vendor deleted successfully');
+            await deleteVendor({ end_point: `/vendors/${clientToDelete.id}` }).unwrap();
+            toast.success('Client deleted successfully');
             setIsDeleteModalOpen(false);
-            setVendorToDelete(null);
+            setClientToDelete(null);
             refetch();
         } catch (err) {
-            toast.error(err?.data?.message || 'Failed to delete vendor');
+            toast.error(err?.data?.message || 'Failed to delete client');
         }
     };
 
     const columns = useMemo(() => [
         {
-            header: 'Vendor Name',
+            header: 'Client Name',
             accessorKey: 'name',
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
@@ -102,7 +110,7 @@ const VendorList = () => {
             header: 'Status',
             accessorKey: 'is_active',
             cell: ({ row }) => (
-                <Badge variant={row.original.is_active ? 'success' : 'gray'}>
+                <Badge variant={row.original.is_active ? 'success' : 'error'}>
                     {row.original.is_active ? 'Active' : 'Inactive'}
                 </Badge>
             )
@@ -115,8 +123,18 @@ const VendorList = () => {
                     <Button
                         variant="ghost"
                         size="sm"
+                        className="p-1.5 text-blue-500 hover:bg-blue-50 hover:text-blue-600"
+                        onClick={() => handleView(row.original)}
+                        title="View Profile"
+                    >
+                        <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
                         onClick={() => handleEdit(row.original)}
+                        title="Edit Client"
                     >
                         <Edit className="h-4 w-4" />
                     </Button>
@@ -137,12 +155,12 @@ const VendorList = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Clients & Vendors</h1>
-                    <p className="text-slate-500 text-sm italic">Manage external partners and vendor accounts.</p>
+                    <h1 className="text-2xl font-bold text-white">Clients</h1>
+                    <p className="text-slate-500 text-sm italic">Manage external partners and client accounts.</p>
                 </div>
                 <Button
                     onClick={() => {
-                        setSelectedVendor(null);
+                        setSelectedClient(null);
                         setIsFormOpen(true);
                     }}
                     leftIcon={<Plus className="h-4 w-4" />}
@@ -152,10 +170,10 @@ const VendorList = () => {
             </div>
 
             <Card>
-                <CardBody className="p-0">
+                <CardBody className="p-3">
                     <Table
                         columns={columns}
-                        data={vendors}
+                        data={clients}
                         isLoading={isLoading}
                         manualPagination={true}
                         pageCount={paginationData.last_page || 0}
@@ -166,10 +184,16 @@ const VendorList = () => {
                 </CardBody>
             </Card>
 
-            <VendorForm
+            <ClientProfile
+                isOpen={isProfileModalOpen}
+                onClose={() => setIsProfileModalOpen(false)}
+                client={clientToView}
+            />
+
+            <ClientForm
                 isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
-                vendor={selectedVendor}
+                vendor={selectedClient}
                 onSuccess={refetch}
             />
 
@@ -177,12 +201,12 @@ const VendorList = () => {
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Delete Vendor"
-                message={`Are you sure you want to delete ${vendorToDelete?.name}? This action cannot be undone.`}
+                title="Delete Client"
+                message={`Are you sure you want to delete ${clientToDelete?.name}? This action cannot be undone.`}
                 isLoading={isDeleting}
             />
         </div>
     );
 };
 
-export default VendorList;
+export default ClientList;

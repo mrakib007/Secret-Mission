@@ -12,15 +12,15 @@ import {
 import { toast } from 'react-toastify';
 import { Building2, Mail, Phone, Globe, MapPin, Hash, Briefcase } from 'lucide-react';
 
-const vendorSchema = Yup.object().shape({
-    name: Yup.string().required('Vendor name is required'),
+const clientSchema = Yup.object().shape({
+    name: Yup.string().required('Client name is required'),
     email: Yup.string().email('Invalid email').nullable(),
     company_name: Yup.string().nullable(),
     phone: Yup.string().nullable(),
     website: Yup.string().url('Invalid URL').nullable(),
 });
 
-const VendorForm = ({ isOpen, onClose, vendor, onSuccess }) => {
+const ClientForm = ({ isOpen, onClose, vendor, onSuccess }) => {
     const isEditing = !!vendor;
 
     const [createVendor, { isLoading: isCreating }] = usePostApiMutation();
@@ -54,19 +54,19 @@ const VendorForm = ({ isOpen, onClose, vendor, onSuccess }) => {
                     end_point: `/update-vendor/${vendor.id}`,
                     body: body
                 }).unwrap();
-                toast.success('Vendor updated successfully');
+                toast.success('Client updated successfully');
             } else {
                 await createVendor({
                     end_point: '/vendors',
                     body: body
                 }).unwrap();
-                toast.success('Vendor created successfully');
+                toast.success('Client created successfully');
             }
 
             onSuccess();
             onClose();
         } catch (err) {
-            toast.error(err?.data?.message || 'Failed to save vendor');
+            toast.error(err?.data?.message || 'Failed to save client');
         } finally {
             setSubmitting(false);
         }
@@ -76,14 +76,14 @@ const VendorForm = ({ isOpen, onClose, vendor, onSuccess }) => {
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={isEditing ? 'Edit Vendor Details' : 'Add New Vendor'}
+            title={isEditing ? 'Edit Client Details' : 'Add New Client'}
             size="xl"
             className="overflow-hidden"
             contentClassName="pb-2 px-2 overflow-hidden"
         >
             <Formik
                 initialValues={initialValues}
-                validationSchema={vendorSchema}
+                validationSchema={clientSchema}
                 onSubmit={handleSubmit}
                 enableReinitialize
             >
@@ -98,7 +98,7 @@ const VendorForm = ({ isOpen, onClose, vendor, onSuccess }) => {
                                             <Building2 className="w-10 h-10 text-indigo-500" />
                                         </div>
                                         <h3 className="text-lg font-bold text-slate-900 text-center">
-                                            {values.name || 'Vendor Name'}
+                                            {values.name || 'Client Name'}
                                         </h3>
                                         <p className="text-sm text-slate-500 text-center mb-6">
                                             {values.company_name || 'Company Profile'}
@@ -107,7 +107,7 @@ const VendorForm = ({ isOpen, onClose, vendor, onSuccess }) => {
                                         <div className="mt-auto flex items-center justify-between w-full p-4 bg-white rounded-xl border border-slate-200">
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-semibold text-slate-900">Active Status</span>
-                                                <span className="text-xs text-slate-500">Enable/Disable vendor</span>
+                                                <span className="text-xs text-slate-500">Enable/Disable client</span>
                                             </div>
                                             <Switch name="is_active" />
                                         </div>
@@ -140,11 +140,11 @@ const VendorForm = ({ isOpen, onClose, vendor, onSuccess }) => {
                                             <span>Company Identification</span>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <Input label="Vendor Name" name="name" placeholder="John Doe or Acme Corp" required />
+                                            <Input label="Client Name" name="name" placeholder="John Doe or Acme Corp" required />
                                             <Input label="Brand/Company Name" name="company_name" placeholder="Acme International" />
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <Input label="Email Address" name="email" type="email" placeholder="vendor@example.com" />
+                                            <Input label="Email Address" name="email" type="email" placeholder="client@example.com" />
                                             <Input label="Phone Number" name="phone" placeholder="+880 17xx-xxxxxx" />
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -178,7 +178,7 @@ const VendorForm = ({ isOpen, onClose, vendor, onSuccess }) => {
                         <div className="flex justify-end gap-3 p-6 bg-slate-50 border-t border-slate-200 rounded-b-xl -mx-6 -mb-6 mt-4">
                             <Button variant="ghost" onClick={onClose} type="button">Discard</Button>
                             <Button type="submit" isLoading={isSubmitting || isCreating || isUpdating} className="px-8">
-                                {isEditing ? 'Save Details' : 'Create Vendor'}
+                                {isEditing ? 'Update Client' : 'Create Client'}
                             </Button>
                         </div>
                     </Form>
@@ -188,4 +188,4 @@ const VendorForm = ({ isOpen, onClose, vendor, onSuccess }) => {
     );
 };
 
-export default VendorForm;
+export default ClientForm;
