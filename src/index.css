@@ -148,6 +148,19 @@
   .custom-scrollbar-thin::-webkit-scrollbar-thumb {
     @apply bg-dark-700 rounded-full hover:bg-dark-600;
   }
+
+  /* Extra thin scrollbar for Gantt chart */
+  .custom-scrollbar-thin-gantt::-webkit-scrollbar {
+    @apply w-1;
+  }
+
+  .custom-scrollbar-thin-gantt::-webkit-scrollbar-track {
+    @apply bg-dark-900;
+  }
+
+  .custom-scrollbar-thin-gantt::-webkit-scrollbar-thumb {
+    @apply bg-dark-700 rounded-full hover:bg-dark-600;
+  }
 }
 
 @layer utilities {
