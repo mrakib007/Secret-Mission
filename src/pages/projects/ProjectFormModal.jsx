@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Modal from '../../components/ui/Modal';
@@ -17,11 +17,11 @@ import { toast } from 'react-toastify';
 const validationSchema = Yup.object({
     name: Yup.string().required('Project name is required'),
     description: Yup.string(),
-    project_type_id: Yup.string().required('Project type is required'),
-    vendor_id: Yup.string(),
+    project_type_id: Yup.number().required('Project type is required'),
+    vendor_id: Yup.number().nullable(),
     priority: Yup.string(),
-    start_date: Yup.date(),
-    end_date: Yup.date(),
+    start_date: Yup.date().nullable(),
+    end_date: Yup.date().nullable(),
     onhold_postponed_date: Yup.date().nullable(),
     status: Yup.string(),
     progress: Yup.number().min(0).max(100),
@@ -39,12 +39,12 @@ const ProjectFormModal = ({ isOpen, onClose, projectId = null, onSuccess, mode =
     );
 
     // Fetch vendors and project types
-    const { data: vendorsResponse } = useGetApiQuery(
+    const { data: vendorsResponse, isLoading: isLoadingVendors } = useGetApiQuery(
         { url: '/vendors' },
         { skip: !isOpen }
     );
-    const { data: projectTypesResponse } = useGetApiQuery(
-        { url: '/project-types' },
+    const { data: projectTypesResponse, isLoading: isLoadingProjectTypes } = useGetApiQuery(
+        { url: '/open/get-project-type-list' },
         { skip: !isOpen }
     );
 
@@ -53,37 +53,14 @@ const ProjectFormModal = ({ isOpen, onClose, projectId = null, onSuccess, mode =
 
     const project = projectResponse?.data;
     const vendors = vendorsResponse?.data?.data || [];
-    const projectTypes = projectTypesResponse?.data?.data || [];
+    const projectTypes = (projectTypesResponse?.data || []).filter(type => type.is_active !== false);
 
-    // Dummy options as fallback
-    const dummyProjectTypes = [
-        { id: 1, name: 'Web Application Development' },
-        { id: 2, name: 'Mobile App Development' },
-        { id: 3, name: 'Desktop Application' },
-        { id: 4, name: 'API Development' },
-        { id: 5, name: 'E-commerce Platform' },
-        { id: 6, name: 'CMS Development' },
-        { id: 7, name: 'SaaS Application' },
-        { id: 8, name: 'Enterprise Software' },
-        { id: 9, name: 'Microservices Architecture' },
-        { id: 10, name: 'Cloud Infrastructure' },
-    ];
-
-    const dummyVendors = [
-        { id: 1, name: 'BacBon Ltd' },
-        { id: 2, name: 'Tech Solutions Inc' },
-        { id: 3, name: 'Digital Innovations' },
-        { id: 4, name: 'Software Partners' },
-        { id: 5, name: 'Code Crafters' },
-    ];
-
-    // Use API data if available, otherwise use dummy data
-    const vendorOptions = (vendors.length > 0 ? vendors : dummyVendors).map(vendor => ({
+    const vendorOptions = vendors.map(vendor => ({
         value: vendor.id,
         label: vendor.name
     }));
 
-    const projectTypeOptions = (projectTypes.length > 0 ? projectTypes : dummyProjectTypes).map(type => ({
+    const projectTypeOptions = projectTypes.map(type => ({
         value: type.id,
         label: type.name
     }));
@@ -107,31 +84,45 @@ const ProjectFormModal = ({ isOpen, onClose, projectId = null, onSuccess, mode =
         return date.toISOString().split('T')[0];
     };
 
-    const initialValues = isEditMode && project ? {
-        name: project.name || '',
-        description: project.description || '',
-        project_type_id: project.project_type_id?.toString() || '',
-        vendor_id: project.vendor_id?.toString() || '',
-        priority: project.priority || 'medium',
-        start_date: formatDateForInput(project.start_date),
-        end_date: formatDateForInput(project.end_date),
-        onhold_postponed_date: formatDateForInput(project.onhold_postponed_date),
-        status: project.status || 'pending',
-        progress: project.progress || 0,
-        is_archived: project.is_archived || false,
-    } : {
-        name: '',
-        description: '',
-        project_type_id: '',
-        vendor_id: '',
-        priority: 'medium',
-        start_date: '',
-        end_date: '',
-        onhold_postponed_date: '',
-        status: 'pending',
-        progress: 0,
-        is_archived: false,
+    // Prepare initial values - wait for project data in edit mode
+    const getInitialValues = () => {
+        if (isEditMode) {
+            // In edit mode, only return values when project data is loaded
+            if (!project) {
+                return null; // Return null to indicate data is still loading
+            }
+            return {
+                name: project.name || '',
+                description: project.description || '',
+                // Keep as numbers to match option values (not strings)
+                project_type_id: project.project_type_id || null,
+                vendor_id: project.vendor_id || null,
+                priority: project.priority || 'medium',
+                start_date: formatDateForInput(project.start_date),
+                end_date: formatDateForInput(project.end_date),
+                onhold_postponed_date: formatDateForInput(project.onhold_postponed_date),
+                status: project.status || 'pending',
+                progress: project.progress || 0,
+                is_archived: project.is_archived || false,
+            };
+        }
+        // Create mode - return default empty values
+        return {
+            name: '',
+            description: '',
+            project_type_id: null,
+            vendor_id: null,
+            priority: 'medium',
+            start_date: '',
+            end_date: '',
+            onhold_postponed_date: '',
+            status: 'pending',
+            progress: 0,
+            is_archived: false,
+        };
     };
+
+    const initialValues = getInitialValues();
 
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
         try {
@@ -169,7 +160,12 @@ const ProjectFormModal = ({ isOpen, onClose, projectId = null, onSuccess, mode =
         }
     };
 
-    if (isEditMode && isLoadingProject) {
+    // Show loading state when fetching data
+    const isLoadingData = isEditMode 
+        ? (isLoadingProject || !project || isLoadingVendors || isLoadingProjectTypes)
+        : (isLoadingVendors || isLoadingProjectTypes);
+
+    if (isLoadingData) {
         return (
             <Modal 
                 isOpen={isOpen} 
@@ -186,6 +182,11 @@ const ProjectFormModal = ({ isOpen, onClose, projectId = null, onSuccess, mode =
         );
     }
 
+    // Don't render form if initialValues is null (data still loading in edit mode)
+    if (initialValues === null) {
+        return null;
+    }
+
     return (
         <Modal
             isOpen={isOpen}
@@ -197,7 +198,8 @@ const ProjectFormModal = ({ isOpen, onClose, projectId = null, onSuccess, mode =
                 initialValues={initialValues}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
-                enableReinitialize
+                enableReinitialize={true}
+                key={isEditMode ? project?.id : 'create'}
             >
                 {({ isSubmitting }) => (
                     <Form className="space-y-4">
