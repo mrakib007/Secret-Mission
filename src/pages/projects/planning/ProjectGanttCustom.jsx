@@ -1,8 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { GanttChart } from 'lucide-react';
 import { useGetApiWithIdQuery } from '../../../store/api/commonApi';
-import { format, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isToday, isWeekend } from 'date-fns';
-import DateTime from '../../../components/ui/DateTime';
+import { format, eachDayOfInterval, isToday, isWeekend } from 'date-fns';
 
 const ProjectGanttCustom = ({
     projectId,
@@ -10,7 +9,7 @@ const ProjectGanttCustom = ({
     projectEnd,
     items: itemsProp,
     className = '',
-    minHeight = 420,
+    minHeight = 600,
 }) => {
     const { data: planningRes } = useGetApiWithIdQuery(
         { url: '/project-planning-list', id: projectId },
@@ -18,12 +17,14 @@ const ProjectGanttCustom = ({
     );
 
     const items = itemsProp ?? planningRes?.data?.data ?? planningRes?.data ?? [];
+    const scrollSyncClass = 'gantt-timeline-scroll';
+    const verticalScrollSyncClass = 'gantt-vertical-scroll';
 
     // Calculate date range for calendar
     const dateRange = useMemo(() => {
         if (!items.length) {
             const start = projectStart ? new Date(projectStart) : new Date();
-            const end = projectEnd ? new Date(projectEnd) : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+            const end = projectEnd ? new Date(projectEnd) : new Date(start.getTime() + 90 * 24 * 60 * 60 * 1000);
             return { start, end };
         }
 
@@ -37,7 +38,7 @@ const ProjectGanttCustom = ({
 
         if (!dates.length) {
             const start = projectStart ? new Date(projectStart) : new Date();
-            const end = projectEnd ? new Date(projectEnd) : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+            const end = projectEnd ? new Date(projectEnd) : new Date(start.getTime() + 90 * 24 * 60 * 60 * 1000);
             return { start, end };
         }
 
@@ -59,27 +60,42 @@ const ProjectGanttCustom = ({
     }, [dateRange]);
 
     // Calculate bar positions for each item
+    const dayWidth = 32; // Fixed width per day in pixels
     const itemBars = useMemo(() => {
         return items.map((item) => {
             const start = item.start_date ? new Date(item.start_date) : null;
             const end = item.end_date ? new Date(item.end_date) : null;
             if (!start || !end) return null;
 
-            const totalDays = calendarDays.length;
-            const startIndex = calendarDays.findIndex((d) => format(d, 'yyyy-MM-dd') === format(start, 'yyyy-MM-dd'));
-            const endIndex = calendarDays.findIndex((d) => format(d, 'yyyy-MM-dd') === format(end, 'yyyy-MM-dd'));
+            // Normalize dates to start of day for accurate comparison
+            const startDate = new Date(start);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(end);
+            endDate.setHours(0, 0, 0, 0);
+
+            // Find exact day matches using normalized dates
+            const startIndex = calendarDays.findIndex((d) => {
+                const dayDate = new Date(d);
+                dayDate.setHours(0, 0, 0, 0);
+                return dayDate.getTime() === startDate.getTime();
+            });
+            const endIndex = calendarDays.findIndex((d) => {
+                const dayDate = new Date(d);
+                dayDate.setHours(0, 0, 0, 0);
+                return dayDate.getTime() === endDate.getTime();
+            });
 
             if (startIndex === -1 || endIndex === -1) return null;
 
-            const leftPercent = (startIndex / totalDays) * 100;
-            const widthPercent = ((endIndex - startIndex + 1) / totalDays) * 100;
+            const leftPx = startIndex * dayWidth;
+            const widthPx = (endIndex - startIndex + 1) * dayWidth;
             const progress = item.progress != null ? Number(item.progress) : 0;
 
             return {
                 id: item.id,
                 name: item.description || item.title || item.name || 'Untitled',
-                left: leftPercent,
-                width: widthPercent,
+                left: leftPx,
+                width: widthPx,
                 progress: Math.min(100, Math.max(0, progress)),
                 start,
                 end,
@@ -87,7 +103,7 @@ const ProjectGanttCustom = ({
                 planningType: item.planning_type?.name || '',
             };
         }).filter(Boolean);
-    }, [items, calendarDays]);
+    }, [items, calendarDays, dayWidth]);
 
     // Group days by month for header
     const monthGroups = useMemo(() => {
@@ -100,7 +116,7 @@ const ProjectGanttCustom = ({
             if (monthKey !== currentMonth) {
                 if (currentGroup) groups.push(currentGroup);
                 currentMonth = monthKey;
-                currentGroup = { month: day, startIndex: index, days: [] }; // Store date object instead of string
+                currentGroup = { month: day, startIndex: index, days: [] };
             }
             currentGroup.days.push(day);
         });
@@ -123,6 +139,75 @@ const ProjectGanttCustom = ({
                 return 'bg-slate-500';
         }
     };
+
+    const rowHeight = 48;
+    const headerHeight = 100;
+    const minRows = items.length > 0 ? Math.max(Math.ceil((minHeight - headerHeight) / rowHeight), itemBars.length) : Math.ceil((minHeight - headerHeight) / rowHeight);
+    const totalRows = Math.max(minRows, itemBars.length);
+    const totalHeight = totalRows * rowHeight + headerHeight;
+    const timelineWidth = calendarDays.length * dayWidth;
+
+    // Synchronize all horizontal scrolling using class selector
+    useEffect(() => {
+        if (!items.length) return;
+        
+        const scrollContainers = document.querySelectorAll(`.${scrollSyncClass}`);
+        
+        if (scrollContainers.length === 0) return;
+
+        const syncAllScrolls = (sourceScrollLeft, source) => {
+            scrollContainers.forEach((container) => {
+                if (container !== source && Math.abs(container.scrollLeft - sourceScrollLeft) > 1) {
+                    container.scrollLeft = sourceScrollLeft;
+                }
+            });
+        };
+
+        const handleScroll = (e) => {
+            syncAllScrolls(e.target.scrollLeft, e.target);
+        };
+
+        scrollContainers.forEach((container) => {
+            container.addEventListener('scroll', handleScroll);
+        });
+
+        return () => {
+            scrollContainers.forEach((container) => {
+                container.removeEventListener('scroll', handleScroll);
+            });
+        };
+    }, [scrollSyncClass, timelineWidth, totalRows, items.length]);
+
+    // Synchronize vertical scrolling between left column and timeline
+    useEffect(() => {
+        if (!items.length) return;
+        
+        const verticalScrollContainers = document.querySelectorAll(`.${verticalScrollSyncClass}`);
+        
+        if (verticalScrollContainers.length === 0) return;
+
+        const syncVerticalScrolls = (sourceScrollTop, source) => {
+            verticalScrollContainers.forEach((container) => {
+                if (container !== source && Math.abs(container.scrollTop - sourceScrollTop) > 1) {
+                    container.scrollTop = sourceScrollTop;
+                }
+            });
+        };
+
+        const handleVerticalScroll = (e) => {
+            syncVerticalScrolls(e.target.scrollTop, e.target);
+        };
+
+        verticalScrollContainers.forEach((container) => {
+            container.addEventListener('scroll', handleVerticalScroll);
+        });
+
+        return () => {
+            verticalScrollContainers.forEach((container) => {
+                container.removeEventListener('scroll', handleVerticalScroll);
+            });
+        };
+    }, [verticalScrollSyncClass, totalRows, items.length]);
 
     if (!items.length) {
         return (
@@ -150,12 +235,6 @@ const ProjectGanttCustom = ({
         );
     }
 
-    const rowHeight = 48;
-    const headerHeight = 100;
-    const minRows = Math.ceil((minHeight - headerHeight) / rowHeight);
-    const totalRows = Math.max(minRows, itemBars.length);
-    const totalHeight = totalRows * rowHeight + headerHeight;
-
     return (
         <div className={`space-y-4 ${className}`}>
             <div className="flex items-center gap-3">
@@ -169,161 +248,208 @@ const ProjectGanttCustom = ({
             </div>
 
             <div
-                className="rounded-xl border border-dark-700 bg-dark-900/50 overflow-hidden"
-                style={{ minHeight: totalHeight }}
+                className="rounded-xl border border-dark-700 bg-dark-900/50 overflow-hidden flex flex-col"
+                style={{ minHeight: totalHeight, maxHeight: totalHeight }}
             >
-                {/* Calendar Header */}
-                <div className="border-b border-dark-700 bg-dark-800/50">
+                {/* Fixed header */}
+                <div className="border-b border-dark-700 bg-dark-800/50 flex-shrink-0">
                     {/* Month headers */}
                     <div className="flex border-b border-dark-700">
-                        <div className="w-48 border-r border-dark-700 px-4 py-2 bg-dark-800/70"></div>
-                        {monthGroups.map((group, idx) => {
-                            // Format month header as "MMM yyyy" (e.g., "Jan 2026")
-                            const monthText = format(group.month, 'MMM yyyy');
-                            return (
-                                <div
-                                    key={idx}
-                                    className="flex-1 px-2 py-2 text-xs font-semibold text-slate-300 text-center border-r border-dark-700 last:border-r-0"
-                                    style={{
-                                        flex: `${group.days.length} 0 0`,
-                                    }}
-                                >
-                                    {monthText}
-                                </div>
-                            );
-                        })}
+                        <div className="w-48 border-r border-dark-700 px-4 py-2 bg-dark-800/70 flex-shrink-0"></div>
+                        <div 
+                            className={`flex overflow-x-auto hide-scrollbar ${scrollSyncClass}`}
+                            style={{ width: 'calc(100% - 12rem)' }}
+                        >
+                            <div className="flex" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
+                                {monthGroups.map((group, idx) => {
+                                    const monthText = format(group.month, 'MMM yyyy');
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className="px-2 py-2 text-xs font-semibold text-slate-300 text-center border-r border-dark-700 last:border-r-0"
+                                            style={{
+                                                width: `${group.days.length * dayWidth}px`,
+                                                flexShrink: 0,
+                                            }}
+                                        >
+                                            {monthText}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Day headers */}
-                    <div className="flex overflow-x-auto custom-scrollbar-thin-gantt">
+                    <div className="flex">
                         <div className="w-48 border-r border-dark-700 px-4 py-2 bg-dark-800/70 flex-shrink-0"></div>
-                        <div className="flex flex-1 min-w-0">
-                            {calendarDays.map((day, idx) => {
-                                const isWeekendDay = isWeekend(day);
-                                const isTodayDay = isToday(day);
-                                return (
-                                    <div
-                                        key={idx}
-                                        className={`flex-shrink-0 px-1 py-2 text-center border-r border-dark-700 last:border-r-0 ${
-                                            isWeekendDay ? 'bg-dark-800/30' : 'bg-dark-800/50'
-                                        } ${isTodayDay ? 'ring-1 ring-primary-500/50' : ''}`}
-                                        style={{ minWidth: '32px' }}
-                                    >
-                                        <div className={`text-xs font-medium ${isTodayDay ? 'text-primary-400' : 'text-slate-400'}`}>
-                                            {format(day, 'd')}
+                        <div 
+                            className={`flex overflow-x-auto hide-scrollbar ${scrollSyncClass}`}
+                            style={{ width: 'calc(100% - 12rem)' }}
+                        >
+                            <div className="flex" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
+                                {calendarDays.map((day, idx) => {
+                                    const isWeekendDay = isWeekend(day);
+                                    const isTodayDay = isToday(day);
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`flex-shrink-0 px-1 py-2 text-center border-r border-dark-700 last:border-r-0 ${
+                                                isWeekendDay ? 'bg-dark-800/30' : 'bg-dark-800/50'
+                                            } ${isTodayDay ? 'ring-1 ring-primary-500/50' : ''}`}
+                                            style={{ width: `${dayWidth}px`, flexShrink: 0 }}
+                                        >
+                                            <div className={`text-xs font-medium ${isTodayDay ? 'text-primary-400' : 'text-slate-400'}`}>
+                                                {format(day, 'd')}
+                                            </div>
+                                            <div className="text-[10px] text-slate-500 mt-0.5">
+                                                {format(day, 'EEE')}
+                                            </div>
                                         </div>
-                                        <div className="text-[10px] text-slate-500 mt-0.5">
-                                            {format(day, 'EEE')}
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Gantt Rows */}
-                <div className="overflow-y-auto custom-scrollbar-thin-gantt" style={{ maxHeight: totalHeight - headerHeight }}>
-                    {Array.from({ length: totalRows }).map((_, rowIdx) => {
-                        const bar = itemBars[rowIdx];
-                        // Empty row (no task)
-                        if (!bar) {
-                            return (
-                                <div
-                                    key={`empty-${rowIdx}`}
-                                    className="flex items-center border-b border-dark-700"
-                                    style={{ height: rowHeight }}
-                                >
-                                    {/* Empty task name area */}
-                                    <div className="w-48 border-r border-dark-700 px-4 py-2 flex-shrink-0 bg-dark-800/30"></div>
-
-                                    {/* Timeline area with grid lines */}
-                                    <div className="flex-1 relative h-full overflow-hidden">
-                                        {/* Grid lines - always show */}
-                                        <div className="absolute inset-0 flex">
-                                            {calendarDays.map((day, dayIdx) => {
-                                                const isWeekendDay = isWeekend(day);
-                                                return (
-                                                    <div
-                                                        key={dayIdx}
-                                                        className={`flex-1 border-r border-dark-700 last:border-r-0 ${
-                                                            isWeekendDay ? 'bg-dark-800/10' : ''
-                                                        }`}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        }
-
-                        // Row with task
-                        return (
-                            <div
-                                key={bar.id}
-                                className="flex items-center border-b border-dark-700 hover:bg-dark-800/30 transition-colors"
-                                style={{ height: rowHeight }}
-                            >
-                                {/* Task name */}
-                                <div className="w-48 border-r border-dark-700 px-4 py-2 flex-shrink-0 bg-dark-800/30">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full ${getStatusColor(bar.status)}`}></div>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-white truncate">{bar.name}</p>
-                                            {bar.planningType && (
-                                                <p className="text-xs text-slate-400 truncate">{bar.planningType}</p>
+                {/* Gantt Rows - Proper structure: fixed left + scrollable right */}
+                <div className="flex-1 flex min-h-0" style={{ height: totalHeight - headerHeight }}>
+                    {/* Fixed left column - NEVER scrolls horizontally */}
+                    <div className="w-48 border-r border-dark-700 flex-shrink-0 flex flex-col bg-dark-800/30">
+                        <div className={`flex-1 overflow-y-auto custom-scrollbar-thin-gantt ${verticalScrollSyncClass}`}>
+                            <div className="flex flex-col">
+                                {Array.from({ length: totalRows }).map((_, rowIdx) => {
+                                    const bar = itemBars[rowIdx];
+                                    return (
+                                        <div
+                                            key={bar ? bar.id : `empty-${rowIdx}`}
+                                            className="flex items-center border-b border-dark-700 px-4 py-2"
+                                            style={{ height: rowHeight, minHeight: rowHeight }}
+                                        >
+                                            {bar ? (
+                                                <div className="flex items-center gap-2 w-full">
+                                                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getStatusColor(bar.status)}`}></div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-medium text-white truncate">{bar.name}</p>
+                                                        {bar.planningType && (
+                                                            <p className="text-xs text-slate-400 truncate">{bar.planningType}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="w-full"></div>
                                             )}
                                         </div>
-                                    </div>
-                                </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
 
-                                {/* Timeline area */}
-                                <div className="flex-1 relative h-full overflow-hidden">
-                                    {/* Grid lines - always show */}
-                                    <div className="absolute inset-0 flex">
-                                        {calendarDays.map((day, dayIdx) => {
-                                            const isWeekendDay = isWeekend(day);
+                    {/* Scrollable timeline area */}
+                    <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
+                        {/* Horizontal scroll container - scrollbar visible at bottom */}
+                        <div 
+                            className={`gantt-x-scrollbar overflow-x-auto flex-1 ${scrollSyncClass}`}
+                            style={{ 
+                                width: '100%',
+                                height: '100%'
+                            }}
+                        >
+                            {/* Vertical scroll container - inside horizontal scroll */}
+                            <div className={`overflow-y-auto custom-scrollbar-thin-gantt overflow-x-hidden ${verticalScrollSyncClass}`} style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px`, height: '100%' }}>
+                                <div className="flex flex-col">
+                                    {Array.from({ length: totalRows }).map((_, rowIdx) => {
+                                        const bar = itemBars[rowIdx];
+                                        // Empty row (no task)
+                                        if (!bar) {
                                             return (
                                                 <div
-                                                    key={dayIdx}
-                                                    className={`flex-1 border-r border-dark-700 last:border-r-0 ${
-                                                        isWeekendDay ? 'bg-dark-800/10' : ''
-                                                    }`}
-                                                />
+                                                    key={`empty-${rowIdx}`}
+                                                    className="flex items-center border-b border-dark-700"
+                                                    style={{ height: rowHeight, minHeight: rowHeight }}
+                                                >
+                                                    {/* Timeline area with grid lines */}
+                                                    <div className="flex-1 relative h-full" style={{ width: `${timelineWidth}px` }}>
+                                                        {/* Grid lines - always show */}
+                                                        <div className="absolute inset-0 flex">
+                                                            {calendarDays.map((day, dayIdx) => {
+                                                                const isWeekendDay = isWeekend(day);
+                                                                return (
+                                                                    <div
+                                                                        key={dayIdx}
+                                                                        className={`border-r border-dark-700 last:border-r-0 ${
+                                                                            isWeekendDay ? 'bg-dark-800/10' : ''
+                                                                        }`}
+                                                                        style={{ width: `${dayWidth}px`, flexShrink: 0 }}
+                                                                    />
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             );
-                                        })}
-                                    </div>
+                                        }
 
-                                    {/* Gantt bar */}
-                                    <div
-                                        className="absolute top-1/2 -translate-y-1/2 h-8 rounded-md overflow-hidden shadow-sm border border-dark-600"
-                                        style={{
-                                            left: `${bar.left}%`,
-                                            width: `${bar.width}%`,
-                                        }}
-                                    >
-                                        {/* Progress bar */}
-                                        <div className={`h-full ${getStatusColor(bar.status)} relative`}>
-                                            {/* Completed portion */}
-                                            {bar.progress > 0 && (
-                                                <div
-                                                    className="h-full bg-green-500/80 transition-all"
-                                                    style={{ width: `${bar.progress}%` }}
-                                                />
-                                            )}
-                                            {/* Task label overlay */}
-                                            <div className="absolute inset-0 flex items-center px-2">
-                                                <span className="text-xs font-medium text-white truncate">
-                                                    {bar.progress > 0 ? `${bar.progress}%` : ''}
-                                                </span>
+                                        // Row with task
+                                        return (
+                                            <div
+                                                key={bar.id}
+                                                className="flex items-center border-b border-dark-700 hover:bg-dark-800/30 transition-colors"
+                                                style={{ height: rowHeight, minHeight: rowHeight }}
+                                            >
+                                                {/* Timeline area */}
+                                                <div className="flex-1 relative h-full" style={{ width: `${timelineWidth}px` }}>
+                                                    {/* Grid lines - always show */}
+                                                    <div className="absolute inset-0 flex">
+                                                        {calendarDays.map((day, dayIdx) => {
+                                                            const isWeekendDay = isWeekend(day);
+                                                            return (
+                                                                <div
+                                                                    key={dayIdx}
+                                                                    className={`border-r border-dark-700 last:border-r-0 ${
+                                                                        isWeekendDay ? 'bg-dark-800/10' : ''
+                                                                    }`}
+                                                                    style={{ width: `${dayWidth}px`, flexShrink: 0 }}
+                                                                />
+                                                            );
+                                                        })}
+                                                    </div>
+
+                                                    {/* Gantt bar */}
+                                                    <div
+                                                        className="absolute top-1/2 -translate-y-1/2 h-8 rounded-md overflow-hidden shadow-sm border border-dark-600 z-20"
+                                                        style={{
+                                                            left: `${bar.left}px`,
+                                                            width: `${bar.width}px`,
+                                                        }}
+                                                    >
+                                                        {/* Progress bar */}
+                                                        <div className={`h-full ${getStatusColor(bar.status)} relative`}>
+                                                            {/* Completed portion */}
+                                                            {bar.progress > 0 && (
+                                                                <div
+                                                                    className="h-full bg-green-500/80 transition-all"
+                                                                    style={{ width: `${bar.progress}%` }}
+                                                                />
+                                                            )}
+                                                            {/* Task label overlay */}
+                                                            <div className="absolute inset-0 flex items-center px-2">
+                                                                <span className="text-xs font-medium text-white truncate">
+                                                                    {bar.progress > 0 ? `${bar.progress}%` : ''}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
-                        );
-                    })}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
