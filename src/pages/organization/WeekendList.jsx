@@ -89,9 +89,9 @@ const CustomToolbar = (toolbar) => {
             <div className="flex items-center gap-3">
                 <div className="h-10 w-[1px] bg-slate-200 mx-2 hidden sm:block"></div>
                 <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg shadow-slate-900/20 cursor-pointer hover:scale-105 transition-transform">
+                    {/* <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg shadow-slate-900/20 cursor-pointer hover:scale-105 transition-transform">
                         <LayoutGrid className="h-5 w-5" />
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
@@ -195,7 +195,7 @@ const WeekendList = () => {
                         <div className="p-2.5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-200">
                             <CalendarClock className="h-6 w-6 text-white" />
                         </div>
-                        <h1 className="text-3xl font-black text-slate-800 tracking-tight">
+                        <h1 className="text-3xl font-black text-white tracking-tight">
                             Holiday <span className="text-indigo-600">&</span> Weekends
                         </h1>
                     </div>

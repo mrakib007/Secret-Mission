@@ -30,7 +30,7 @@ export const menuItems = [
     },
     {
         id: 'organization',
-        label: 'Organization',
+        label: 'Settings',
         icon: Building2,
         roles: ['admin'],
         children: [
@@ -67,6 +67,9 @@ export const menuItems = [
                 label: 'Holidays & Weekends',
                 path: '/organization/holidays',
                 icon: Calendar,
+                roles: ['admin'],
+            },
+            {
                 id: 'project-planning-types',
                 label: 'Project Planning Types',
                 path: '/organization/project-planning-types',
