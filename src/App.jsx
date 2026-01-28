@@ -35,6 +35,7 @@ const ComponentLibrary = lazy(() => import('./pages/dev/ComponentLibrary'));
 const UserList = lazy(() => import('./pages/users/UserList'));
 const ProjectTypes = lazy(() => import('./pages/organization/ProjectTypeList'));
 const WeekendList = lazy(() => import('./pages/organization/WeekendList'));
+const MyProfile = lazy(() => import('./pages/users/MyProfile'));
 const ProjectPlanningTypes = lazy(() => import('./pages/organization/ProjectPlanningTypeList'));
 const ClientList = lazy(() => import('./pages/clients/VendorList'));
 
@@ -240,6 +241,14 @@ function App() {
                 element={
                   <Suspense fallback={<PageLoader />}>
                     <ComponentLibrary />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="profile"
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <MyProfile />
                   </Suspense>
                 }
               />

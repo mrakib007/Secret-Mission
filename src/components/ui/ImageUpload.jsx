@@ -3,7 +3,7 @@ import { useField } from 'formik';
 import { cn, getImageUrl } from '../../lib/utils';
 import { X, ImageIcon } from 'lucide-react';
 
-const ImageUpload = ({ label, helperText, className, required, ...props }) => {
+const ImageUpload = ({ label, labelClassName, helperText, className, required, ...props }) => {
     const [field, meta, helpers] = useField(props);
     const [preview, setPreview] = useState(null);
     const fileInputRef = useRef(null);
@@ -41,7 +41,7 @@ const ImageUpload = ({ label, helperText, className, required, ...props }) => {
     return (
         <div className={cn('flex flex-col gap-1 w-full', className)}>
             {label && (
-                <label className="block text-sm font-medium leading-6 text-gray-900">
+                <label className={cn("block text-sm font-medium leading-6 text-gray-900", labelClassName)}>
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>

@@ -46,17 +46,22 @@ const Header = ({ toggleSidebar }) => {
 
                 {/* User Menu */}
                 <div className="flex items-center gap-3 pl-4 border-l border-dark-700">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
+                    <button
+                        onClick={() => navigate('/profile')}
+                        className="flex items-center gap-3 hover:bg-dark-800 p-1.5 rounded-xl transition-all duration-300 group"
+                    >
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/10 group-hover:scale-105 transition-transform">
                             <User className="w-5 h-5 text-white" />
                         </div>
-                        <div className="hidden md:block">
-                            <p className="text-sm font-medium text-dark-100">
+                        <div className="hidden md:block text-left">
+                            <p className="text-sm font-bold text-dark-100 group-hover:text-primary-400 transition-colors">
                                 {user?.firstName} {user?.lastName}
                             </p>
-                            <p className="text-xs text-dark-400">{user?.email}</p>
+                            <p className="text-[10px] text-dark-400 font-medium tracking-tight overflow-hidden text-ellipsis whitespace-nowrap max-w-[150px]">
+                                {user?.email}
+                            </p>
                         </div>
-                    </div>
+                    </button>
 
                     <button
                         onClick={handleLogout}

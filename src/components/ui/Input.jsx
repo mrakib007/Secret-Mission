@@ -3,7 +3,7 @@ import { useField } from 'formik';
 import { cn } from '../../lib/utils';
 import { Eye, EyeOff } from 'lucide-react';
 
-const Input = ({ label, helperText, className, type = 'text', required, ...props }) => {
+const Input = ({ label, labelClassName, helperText, className, type = 'text', required, ...props }) => {
     const [field, meta] = useField(props);
     const [showPassword, setShowPassword] = useState(false);
     const isError = meta.touched && meta.error;
@@ -14,7 +14,10 @@ const Input = ({ label, helperText, className, type = 'text', required, ...props
     return (
         <div className={cn('flex flex-col gap-1 w-full', className)}>
             {label && (
-                <label htmlFor={props.id || props.name} className="block text-sm font-medium leading-6 text-gray-900">
+                <label
+                    htmlFor={props.id || props.name}
+                    className={cn("block text-sm font-medium leading-6 text-gray-900", labelClassName)}
+                >
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>

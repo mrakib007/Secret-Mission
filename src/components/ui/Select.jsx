@@ -3,7 +3,7 @@ import ReactSelect from 'react-select';
 import { useField } from 'formik';
 import { cn } from '../../lib/utils';
 
-const Select = ({ label, options = [], helperText, className, placeholder, required, menuPortalTarget, ...props }) => {
+const Select = ({ label, labelClassName, options = [], helperText, className, placeholder, required, menuPortalTarget, ...props }) => {
     const [field, meta, helpers] = useField(props);
     const isError = meta.touched && meta.error;
 
@@ -61,7 +61,10 @@ const Select = ({ label, options = [], helperText, className, placeholder, requi
     return (
         <div className={cn('flex flex-col gap-1 w-full', className)}>
             {label && (
-                <label htmlFor={props.id || props.name} className="block text-sm font-medium leading-6 text-slate-700">
+                <label
+                    htmlFor={props.id || props.name}
+                    className={cn("block text-sm font-medium leading-6 text-slate-700", labelClassName)}
+                >
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
