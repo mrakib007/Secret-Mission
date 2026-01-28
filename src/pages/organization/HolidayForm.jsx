@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import { CalendarDays, Tag } from 'lucide-react';
 
 const holidaySchema = Yup.object().shape({
-    name: Yup.string().required('Holiday name is required'),
+    title: Yup.string().required('Holiday title is required'),
     date: Yup.date().required('Holiday date is required'),
 });
 
@@ -17,7 +17,7 @@ const HolidayForm = ({ isOpen, onClose, onSuccess, initialDate }) => {
     const [addHoliday, { isLoading }] = usePostApiMutation();
 
     const initialValues = {
-        name: '',
+        title: '',
         date: initialDate || '',
     };
 
@@ -65,7 +65,7 @@ const HolidayForm = ({ isOpen, onClose, onSuccess, initialDate }) => {
                         <div className="space-y-4">
                             <Input
                                 label="Holiday Name"
-                                name="name"
+                                name="title"
                                 placeholder="e.g. Independence Day, Eid-ul-Fitr"
                                 required
                                 leftIcon={<Tag className="w-4 h-4" />}
