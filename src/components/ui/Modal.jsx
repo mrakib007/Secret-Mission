@@ -45,18 +45,18 @@ const Modal = ({
 
             {/* Modal Container */}
             <div className={cn(
-                'relative w-full mx-auto bg-white rounded-xl shadow-2xl flex flex-col max-h-full transition-all duration-200 transform scale-100 opacity-100',
+                'relative w-full mx-auto bg-[var(--bg-card)] rounded-xl shadow-2xl flex flex-col max-h-full transition-all duration-200 transform scale-100 opacity-100',
                 sizes[size],
                 className
             )}>
                 {/* Header */}
                 {(title || showCloseButton) && (
-                    <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                        {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
+                    <div className="flex items-center justify-between p-4 border-b border-[var(--border-main)]/50">
+                        {title && <h3 className="text-lg font-semibold text-[var(--text-main)]">{title}</h3>}
                         {showCloseButton && (
                             <button
                                 onClick={onClose}
-                                className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+                                className="p-1 rounded-full hover:bg-[var(--bg-app)] text-[var(--text-muted)] transition-colors"
                                 aria-label="Close modal"
                             >
                                 <X className="h-5 w-5" />
@@ -66,7 +66,7 @@ const Modal = ({
                 )}
 
                 {/* Content */}
-                <div className={cn('flex-1 overflow-y-auto p-6 text-gray-700', contentClassName)}>
+                <div className={cn('flex-1 overflow-y-auto p-6 text-[var(--text-main)]', contentClassName)}>
                     {children}
                 </div>
             </div>

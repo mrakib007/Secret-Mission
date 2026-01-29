@@ -12,6 +12,8 @@
   --text-muted: #64748b;
   --border-main: #e2e8f0;
   --border-muted: #f1f5f9;
+  --bg-skeleton: #e2e8f0;
+  --bg-skeleton-muted: #f1f5f9;
 }
 
 .dark {
@@ -22,6 +24,8 @@
   --text-muted: #94a3b8;
   --border-main: #1e293b;
   --border-muted: #0f172a;
+  --bg-skeleton: #334155;
+  --bg-skeleton-muted: #1e293b;
 }
 
 @layer base {

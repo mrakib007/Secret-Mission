@@ -128,8 +128,8 @@ const UserForm = ({ isOpen, onClose, user, onSuccess }) => {
                                             className="w-full"
                                             helperText="Upload a professional photo. Max 2MB."
                                         />
-                                        <div className="mt-6 flex items-center justify-between w-full p-3 bg-[var(--bg-card)] rounded-xl border border-[var(--border-main)]">
-                                            <span className="text-sm font-medium text-[var(--text-muted)]">Account Active</span>
+                                        <div className="mt-6 flex items-center justify-between w-full p-3 bg-[var(--bg-card)] rounded-xl border border-[var(--border-main)] transition-colors">
+                                            <span className="text-sm font-medium text-[var(--text-main)]">Account Active</span>
                                             <Switch name="is_active" />
                                         </div>
                                     </div>

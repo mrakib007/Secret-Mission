@@ -10,24 +10,25 @@ const Select = ({ label, labelClassName, options = [], helperText, className, pl
     const customStyles = {
         control: (base, state) => ({
             ...base,
-            backgroundColor: 'white',
-            borderColor: state.isFocused ? '#4f46e5' : isError ? '#ef4444' : '#d1d5db',
-            boxShadow: state.isFocused ? '0 0 0 1px #4f46e5' : 'none',
+            backgroundColor: 'var(--bg-card)',
+            borderColor: state.isFocused ? 'var(--primary-color, #4f46e5)' : isError ? '#ef4444' : 'var(--border-main)',
+            boxShadow: state.isFocused ? '0 0 0 1px var(--primary-color, #4f46e5)' : 'none',
             borderRadius: '0.375rem',
             padding: '1px',
             fontSize: '0.875rem',
             minHeight: '38px',
             transition: 'all 0.2s ease',
             '&:hover': {
-                borderColor: state.isFocused ? '#4f46e5' : '#9ca3af',
+                borderColor: state.isFocused ? 'var(--primary-color, #4f46e5)' : 'var(--border-main)',
             },
         }),
         menu: (base) => ({
             ...base,
+            backgroundColor: 'var(--bg-card)',
             zIndex: 9999,
             borderRadius: '0.5rem',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-            border: '1px border-slate-200',
+            border: '1px border-[var(--border-main)]',
             overflow: 'hidden',
         }),
         menuPortal: (base) => ({
@@ -36,19 +37,19 @@ const Select = ({ label, labelClassName, options = [], helperText, className, pl
         }),
         option: (base, state) => ({
             ...base,
-            backgroundColor: state.isSelected ? '#4f46e5' : state.isFocused ? '#f5f7ff' : 'white',
-            color: state.isSelected ? 'white' : '#1e293b',
+            backgroundColor: state.isSelected ? 'var(--primary-color, #4f46e5)' : state.isFocused ? 'var(--bg-app)' : 'var(--bg-card)',
+            color: state.isSelected ? 'white' : 'var(--text-main)',
             '&:active': {
-                backgroundColor: '#4f46e5',
+                backgroundColor: 'var(--primary-color, #4f46e5)',
             },
         }),
         placeholder: (base) => ({
             ...base,
-            color: '#9ca3af',
+            color: 'var(--text-muted)',
         }),
         singleValue: (base) => ({
             ...base,
-            color: '#1e293b',
+            color: 'var(--text-main)',
         }),
     };
 
@@ -63,7 +64,7 @@ const Select = ({ label, labelClassName, options = [], helperText, className, pl
             {label && (
                 <label
                     htmlFor={props.id || props.name}
-                    className={cn("block text-sm font-medium leading-6 text-slate-700", labelClassName)}
+                    className={cn("block text-sm font-medium leading-6 text-[var(--text-main)]", labelClassName)}
                 >
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
@@ -92,7 +93,7 @@ const Select = ({ label, labelClassName, options = [], helperText, className, pl
             }
             {
                 helperText && !isError && (
-                    <p className="mt-1 text-xs text-slate-500">{helperText}</p>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">{helperText}</p>
                 )
             }
         </div >

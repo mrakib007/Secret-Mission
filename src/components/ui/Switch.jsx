@@ -17,7 +17,7 @@ const Switch = ({ label, helperText, className, ...props }) => {
         <div className={cn('flex flex-col gap-1', className)}>
             <div className="flex items-center justify-between gap-3">
                 {label && (
-                    <span className="text-sm font-medium text-gray-900" onClick={toggle}>
+                    <span className="text-sm font-medium text-[var(--text-main)]" onClick={toggle}>
                         {label}
                     </span>
                 )}
@@ -26,8 +26,8 @@ const Switch = ({ label, helperText, className, ...props }) => {
                     onClick={toggle}
                     disabled={props.disabled}
                     className={cn(
-                        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
-                        isChecked ? 'bg-indigo-600' : 'bg-gray-200',
+                        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+                        isChecked ? 'bg-primary-600' : 'bg-[var(--border-main)]',
                         props.disabled && 'opacity-50 cursor-not-allowed'
                     )}
                 >
@@ -44,7 +44,7 @@ const Switch = ({ label, helperText, className, ...props }) => {
                 <p className="mt-1 text-xs text-red-600">{meta.error}</p>
             )}
             {helperText && !isError && (
-                <p className="mt-1 text-xs text-gray-500">{helperText}</p>
+                <p className="mt-1 text-xs text-[var(--text-muted)]">{helperText}</p>
             )}
         </div>
     );

@@ -41,7 +41,7 @@ const ImageUpload = ({ label, labelClassName, helperText, className, required, .
     return (
         <div className={cn('flex flex-col gap-1 w-full', className)}>
             {label && (
-                <label className={cn("block text-sm font-medium leading-6 text-gray-900", labelClassName)}>
+                <label className={cn("block text-sm font-medium leading-6 text-[var(--text-main)]", labelClassName)}>
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -49,8 +49,8 @@ const ImageUpload = ({ label, labelClassName, helperText, className, required, .
             <div
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
-                    'relative flex flex-col items-center justify-center w-full min-h-[150px] border-2 border-dashed rounded-lg cursor-pointer transition-all hover:bg-gray-50 overflow-hidden',
-                    isError ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
+                    'relative flex flex-col items-center justify-center w-full min-h-[150px] border-2 border-dashed rounded-lg cursor-pointer transition-all hover:bg-[var(--bg-app)] overflow-hidden',
+                    isError ? 'border-red-300 bg-red-500/10' : 'border-[var(--border-main)] bg-[var(--bg-card)]'
                 )}
             >
                 <input
@@ -78,11 +78,11 @@ const ImageUpload = ({ label, labelClassName, helperText, className, required, .
                     </div>
                 ) : (
                     <div className="flex flex-col items-center py-6">
-                        <ImageIcon className="h-10 w-10 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600 px-4 text-center">
-                            <span className="font-semibold text-indigo-600">Click to upload image</span>
+                        <ImageIcon className="h-10 w-10 text-[var(--text-muted)] mb-2" strokeWidth={1} />
+                        <p className="text-sm text-[var(--text-muted)] px-4 text-center">
+                            <span className="font-semibold text-primary-500">Click to upload image</span>
                         </p>
-                        {helperText && <p className="text-xs text-gray-500 mt-1">{helperText}</p>}
+                        {helperText && <p className="text-xs text-[var(--text-muted)] mt-1">{helperText}</p>}
                     </div>
                 )}
             </div>
