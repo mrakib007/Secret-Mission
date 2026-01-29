@@ -14,6 +14,7 @@
   --border-muted: #f1f5f9;
   --bg-skeleton: #e2e8f0;
   --bg-skeleton-muted: #f1f5f9;
+  --bg-off-range: #cbd5e1;
 }
 
 .dark {
@@ -26,6 +27,7 @@
   --border-muted: #0f172a;
   --bg-skeleton: #334155;
   --bg-skeleton-muted: #1e293b;
+  --bg-off-range: #373e66;
 }
 
 @layer base {

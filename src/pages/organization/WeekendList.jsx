@@ -359,8 +359,8 @@ const WeekendList = () => {
                     border-radius: 0 0 4px 4px;
                 }
                 .calendar-container .rbc-off-range-bg {
-                    background-color: var(--bg-app) !important;
-                    opacity: 0.5;
+                    background-color: var(--bg-off-range) !important;
+                    opacity: 0.6;
                 }
                 .calendar-container .rbc-date-cell {
                     padding: 12px !important;
